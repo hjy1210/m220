@@ -54,7 +54,8 @@ namespace M220N.Repositories
             // Retrieve the user document corresponding with the user's email.
             //
             // // return await _usersCollection.Find(...)
-            return null;
+            var userFilter = Builders<User>.Filter.Eq(u => u.Email, email);
+            return await _usersCollection.Find<User>(userFilter).FirstOrDefaultAsync(cancellationToken);
         }
 
         /// <summary>
@@ -78,6 +79,10 @@ namespace M220N.Repositories
                 //
                 // // user = new User...
                 // // await _usersCollection.InsertOneAsync(...)
+                user.Name = name;
+                user.Email = email;
+                user.HashedPassword = PasswordHashOMatic.Hash(password);
+                await _usersCollection.WithWriteConcern(WriteConcern.WMajority).InsertOneAsync(user, null, cancellationToken);
                 //
                 // // TODO Ticket: Durable Writes
                 // // To use a more durable Write Concern for this operation, add the 
@@ -131,7 +136,12 @@ namespace M220N.Repositories
                 //  new BsonDocument(...),
                 //  Builders<Session>.Update.Set(...).Set(...),
                 //  new UpdateOptions(...));
-
+                await _sessionsCollection.UpdateOneAsync<Session>(
+                    s => s.UserId == storedUser.Email,
+                    Builders<Session>.Update.Set(s => s.Jwt, storedUser.AuthToken).Set(s => s.UserId, storedUser.Email),
+                    new UpdateOptions { IsUpsert=true },
+                    cancellationToken
+                    );
                 storedUser.AuthToken = user.AuthToken;
                 return new UserResponse(storedUser);
             }
@@ -153,7 +163,8 @@ namespace M220N.Repositories
             // TODO Ticket: User Management
             // Delete the document in the `sessions` collection matching the email.
             
-            await _sessionsCollection.DeleteOneAsync(new BsonDocument(), cancellationToken);
+            //await _sessionsCollection.DeleteOneAsync(new BsonDocument(), cancellationToken);
+            await _sessionsCollection.DeleteOneAsync(s=>s.UserId==email, cancellationToken);
             return new UserResponse(true, "User logged out.");
         }
 
