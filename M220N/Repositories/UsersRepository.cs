@@ -239,6 +239,11 @@ namespace M220N.Repositories
                 //       setting IsUpsert to false! */
                 //    new UpdateOptions(),
                 //    cancellationToken);
+                updateResult = await _usersCollection.UpdateOneAsync(
+                    Builders<User>.Filter.Eq(u => u.Email, email),
+                    Builders<User>.Update.Set(u => u.Preferences, preferences),
+                    new UpdateOptions { IsUpsert = false },
+                    cancellationToken);
 
                 return updateResult.MatchedCount == 0
                     ? new UserResponse(false, "No user found with that email")
