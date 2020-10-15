@@ -204,8 +204,11 @@ namespace M220N.Repositories
                .Find(...)
                .ToListAsync(cancellationToken);*/
             var genreFilter = Builders<Movie>.Filter.AnyIn(m => m.Genres, genres);
-            return await _moviesCollection
+            returnValue = await _moviesCollection
                 .Find<Movie>(genreFilter)
+                .Sort(sort)
+                .Limit(limit)
+                .Skip(page * limit)
                 .ToListAsync();
 
             // // TODO Ticket: Paging
