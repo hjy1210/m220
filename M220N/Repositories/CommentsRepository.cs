@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using M220N.Models;
@@ -142,6 +143,19 @@ namespace M220N.Repositories
                 // //   .Aggregate()
                 // //   .Group(...)
                 // //   .Sort(...).Limt(...).Project(...).ToListAsync()
+                result = await _commentsCollection
+                    .WithReadConcern(ReadConcern.Majority)
+                    .Aggregate()
+                    .Group(
+                            x => x.Email,
+                            g => new ReportProjection{
+                                Id= g.Key,
+                                Count= g.Count()
+                            }
+                    )
+                    .SortByDescending(x=>x.Count)
+                    .Limit(20)
+                    .ToListAsync();
 
                 return new TopCommentsProjection(result);
             }
