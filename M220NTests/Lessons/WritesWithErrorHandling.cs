@@ -121,7 +121,7 @@ namespace M220NLessons
                 // NOTE: uncomment only for this lesson. Otherwise, your unit
                 // tests will stall for 30 seconds every time!
 
-                // fastTheaterCollection.InsertOne(new Theater() { TheaterId = 27055 });
+                //fastTheaterCollection.InsertOne(new Theater() { TheaterId = 27055 });
             }
             catch (TimeoutException ex)
             {

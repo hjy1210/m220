@@ -104,6 +104,10 @@ namespace M220N.Repositories
                 // Catch the exception and check the exception type and message contents.
                 // Return null if the exception is due to a bad/missing Id. Otherwise,
                 // throw.
+                if (ex.Message.IndexOf("valid 24 digit hex") >= 0)
+                {
+                    return null;
+                }
 
                 throw;
             }
