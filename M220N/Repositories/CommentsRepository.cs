@@ -85,7 +85,9 @@ namespace M220N.Repositories
             // // cancellationToken);
             return await _commentsCollection.UpdateOneAsync(
                 Builders<Comment>.Filter.Eq(c => c.Email, user.Email),
-                Builders<Comment>.Update.Set(c => c.Text, comment).Set(c=>c.Email, user.Email),
+                Builders<Comment>.Update
+                    .Set(c => c.Text, comment).Set(c=>c.Email, user.Email).Set(c=>c.Name, user.Name)
+                    .Set(c=>c.Date, DateTime.Now).Set(c=>c.MovieId, movieId),
                 new UpdateOptions { IsUpsert = true },
                 cancellationToken);
 
@@ -110,7 +112,9 @@ namespace M220N.Repositories
             _commentsCollection.DeleteOne(
                 Builders<Comment>.Filter.Where(
                     c => c.MovieId == movieId
-                         && c.Id == commentId));
+                         && c.Id == commentId
+                         && c.Email == user.Email),
+                cancellationToken);
 
             return await _moviesRepository.GetMovieAsync(movieId.ToString(), cancellationToken);
         }
