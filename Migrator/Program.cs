@@ -18,7 +18,7 @@ namespace Migrator
         static IMongoCollection<Movie> _moviesCollection;
 
         // TODO: Update this connection string as needed.
-        static string mongoConnectionString = "";
+        static string mongoConnectionString = "mongodb+srv://m220-student:m220-password@cluster0.aoxyl.gcp.mongodb.net/sample_mflix?retryWrites=true&w=majority";
         
         static async Task Main(string[] args)
         {
@@ -36,7 +36,14 @@ namespace Migrator
                 // (https://api.mongodb.com/csharp/current/html/T_MongoDB_Driver_ReplaceOneModel_1.htm).
                 //
                 // // bulkWriteDatesResult = await _moviesCollection.BulkWriteAsync(...
-
+                var list = new List<ReplaceOneModel<Movie>>();
+                var listMovies = await _moviesCollection.Find<Movie>(Builders<Movie>.Filter.Empty).ToListAsync();
+                foreach (var movie in listMovies)
+                {
+                    movie.LastUpdated = DateTime.Parse(movie.LastUpdated.ToString());
+                    list.Add(new ReplaceOneModel<Movie>(Builders<Movie>.Filter.Eq(m => m.Id, movie.Id), movie));
+                }
+                bulkWriteDatesResult = await _moviesCollection.BulkWriteAsync(list);
                 Console.WriteLine($"{bulkWriteDatesResult.ProcessedRequests.Count} records updated.");
             }
 
@@ -51,6 +58,22 @@ namespace Migrator
                 // (https://api.mongodb.com/csharp/current/html/T_MongoDB_Driver_ReplaceOneModel_1.htm).
                 //
                 // // bulkWriteRatingsResult = await _moviesCollection.BulkWriteAsync(...
+                var list = new List<ReplaceOneModel<Movie>>();
+                var listMovies = await _moviesCollection.Find<Movie>(Builders<Movie>.Filter.Type(m=>m.Imdb.Rating, "string")).ToListAsync();
+                foreach (var movie in listMovies)
+                {
+                    try
+                    {
+                        var v = double.Parse(movie.Imdb.Rating.ToString());
+                        movie.Imdb.Rating = v;
+                    }
+                    catch (Exception)
+                    {
+                        movie.Imdb.Rating = -1;
+                    }
+                    list.Add(new ReplaceOneModel<Movie>(Builders<Movie>.Filter.Eq(m => m.Id, movie.Id), movie));
+                }
+                bulkWriteRatingsResult = await _moviesCollection.BulkWriteAsync(list);
 
                 Console.WriteLine($"{bulkWriteRatingsResult.ProcessedRequests.Count} records updated.");
             }
