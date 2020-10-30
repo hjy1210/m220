@@ -10,6 +10,7 @@ namespace M220NTests
         {
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true)
+                .AddJsonFile($"appsettings.development.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
 
